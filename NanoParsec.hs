@@ -3,10 +3,10 @@ import Control.Applicative
 
 ------------------------ my nano parser combinator ------------------------
 
-newtype Parser tok res = Parser { _parse :: [tok] -> [(res, [tok])] }
+newtype Parser tok res = Parser { prob :: [tok] -> [(res, [tok])] }
 
 runParser :: (Show t, Show a) => Parser t a -> [t] -> Either String a
-runParser m s = case _parse m s of
+runParser m s = case prob m s of
   [(res, [])] -> Right res
   [c@(_, _)] -> Left ("not finised: " ++ show c)
   [] -> Left ("impossible to parse: " ++ show s)
@@ -38,20 +38,20 @@ pairBy (p, q) s = liftA2 (,) (p <* s) q
 
 instance Alternative (Parser t) where
   empty = Parser (\cs -> [])
-  (<|>) p q = Parser $ \s -> case _parse p s of [] -> _parse q s; r -> r
+  (<|>) p q = Parser $ \s -> case prob p s of [] -> prob q s; r -> r
 
 instance Functor (Parser t) where
   fmap f (Parser cs) = Parser (\s -> [(f a, b) | (a, b) <- cs s])
 
 instance Applicative (Parser t) where
   pure x = Parser (\s -> [(x, s)])
-  p <*> q = Parser (\s -> [(f a, s2) | (f, s1) <- _parse p s, (a, s2) <- _parse q s1])
+  p <*> q = Parser (\s -> [(f a, s2) | (f, s1) <- prob p s, (a, s2) <- prob q s1])
 
 instance Monad (Parser t) where --NOTE: not necessary most of the time
   return = pure
-  (>>=) p f = Parser $ \s -> concatMap (\(a, s') -> _parse (f a) s') $ _parse p s
+  (>>=) p f = Parser $ \s -> concatMap (\(a, s') -> prob (f a) s') $ prob p s
 
 --instance MonadPlus (Parser t) where
 --  mzero = Parser (\cs -> [])
---  mplus p q = Parser (\s -> _parse p s ++ _parse q s)
+--  mplus p q = Parser (\s -> prob p s ++ prob q s)
 
