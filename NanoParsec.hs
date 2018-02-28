@@ -24,6 +24,9 @@ single x = satisfy (==x)
 string :: Eq t => [t] -> Parser t [t]
 string xs = foldr (liftA2 (:)) (pure []) (map single xs)
 
+token :: Eq a => a -> Parser (a, b) b
+token tag = Parser (\s -> case s of [] -> []; ((t,r):s') -> [(r, s') | t == tag])
+
 sepBy :: Parser t a -> Parser t b -> Parser t [a]
 sepBy p s = sepBy1 p s <|> pure []
 
