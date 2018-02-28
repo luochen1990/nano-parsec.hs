@@ -47,9 +47,9 @@ instance Applicative (Parser t) where
   pure x = Parser (\s -> [(x, s)])
   p <*> q = Parser (\s -> [(f a, s2) | (f, s1) <- _parse p s, (a, s2) <- _parse q s1])
 
---instance Monad (Parser t) where --NOTE: not necessary most of the time
---  return = pure
---  (>>=) p f = Parser $ \s -> concatMap (\(a, s') -> _parse (f a) s') $ _parse p s
+instance Monad (Parser t) where --NOTE: not necessary most of the time
+  return = pure
+  (>>=) p f = Parser $ \s -> concatMap (\(a, s') -> _parse (f a) s') $ _parse p s
 
 --instance MonadPlus (Parser t) where
 --  mzero = Parser (\cs -> [])
