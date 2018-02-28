@@ -30,12 +30,6 @@ sepBy p s = sepBy1 p s <|> pure []
 sepBy1 :: Parser t a -> Parser t b -> Parser t [a]
 sepBy1 p s = liftA2 (:) p (many (s *> p))
 
-pair :: (Parser t a, Parser t b) -> Parser t (a, b)
-pair (p, q) = liftA2 (,) p q
-
-pairBy :: (Parser t a, Parser t b) -> Parser t s -> Parser t (a, b)
-pairBy (p, q) s = liftA2 (,) (p <* s) q
-
 instance Alternative (Parser t) where
   empty = Parser (\cs -> [])
   (<|>) p q = Parser $ \s -> case prob p s of [] -> prob q s; r -> r
