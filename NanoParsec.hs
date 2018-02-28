@@ -1,9 +1,9 @@
 module NanoParsec where
 import Control.Applicative
 
-------------------------- my nano parser combinator -------------------------
+------------------------ my nano parser combinator ------------------------
 
-newtype Parser tok val = Parser { _parse :: [tok] -> [(val, [tok])] }
+newtype Parser tok res = Parser { _parse :: [tok] -> [(res, [tok])] }
 
 runParser :: (Show t, Show a) => Parser t a -> [t] -> Either String a
 runParser m s = case _parse m s of
