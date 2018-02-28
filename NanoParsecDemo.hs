@@ -10,11 +10,11 @@ data BoolExp = T | F | Not BoolExp | And BoolExp BoolExp | Or BoolExp BoolExp
 -- priority: T|F|() > Not > And (-- right assoc) > Or (-- right assoc)
 pExpr = pOr <|> pAnd <|> pNot <|> pAtom
 
-pOr = Or <$> pAnd <* token '|' <*> pOr <|> pAnd                     -- binary
-pAnd = (uncurry And) <$> (pNot, pAnd) `pairBy` token '&' <|> pNot   --
-pNot = Not <$> (token '!' *> pAtom) <|> pAtom                       -- unary
-pAtom = pLit <|> (token '(' *> pExpr <* token ')')                  --
-pLit = T <$ token 't' <|> pure F <* token 'f'                       -- nullary
+pOr = Or <$> pAnd <* single '|' <*> pOr <|> pAnd              -- binary
+pAnd = And <$> pNot <* single '&' <*> pAnd <|> pNot
+pNot = Not <$> (single '!' *> pAtom) <|> pAtom                -- unary
+pAtom = pLit <|> (single '(' *> pExpr <* single ')')
+pLit = T <$ single 't' <|> pure F <* single 'f'               -- nullary
 
 parse = runParser pExpr
 
