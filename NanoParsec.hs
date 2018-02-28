@@ -18,11 +18,11 @@ item = Parser (\s -> case s of [] -> []; (c:cs) -> [(c, cs)])
 satisfy :: (t -> Bool) -> Parser t t
 satisfy p = Parser (\s -> case s of [] -> []; (c:cs) -> [(c, cs) | p c])
 
-token :: Eq t => t -> Parser t t
-token x = satisfy (==x)
+single :: Eq t => t -> Parser t t
+single x = satisfy (==x)
 
-tokens :: Eq t => [t] -> Parser t [t]
-tokens xs = foldr (liftA2 (:)) (pure []) (map token xs)
+string :: Eq t => [t] -> Parser t [t]
+string xs = foldr (liftA2 (:)) (pure []) (map single xs)
 
 sepBy :: Parser t a -> Parser t b -> Parser t [a]
 sepBy p s = sepBy1 p s <|> pure []
