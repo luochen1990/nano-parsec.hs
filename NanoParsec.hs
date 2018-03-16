@@ -22,11 +22,11 @@ instance Applicative (Parser t) where
 instance Monad (Parser t) where -- not required
   p >>= f = Parser (\s -> concatMap (\(a, s') -> _p (f a) s') (_p p s))
 
+anySingle :: Parser t t
+anySingle = Parser (\s -> case s of [] -> []; (c:cs) -> [(c, cs)])
+
 eof :: Parser t ()
 eof = Parser (\s -> case s of [] -> [((), [])]; _ -> [])
-
-item :: Parser t t
-item = Parser (\s -> case s of [] -> []; (c:cs) -> [(c, cs)])
 
 satisfy :: (t -> Bool) -> Parser t t
 satisfy p = Parser (\s -> case s of [] -> []; (c:cs) -> [(c, cs) | p c])
@@ -37,11 +37,8 @@ single x = satisfy (==x)
 string :: Eq t => [t] -> Parser t [t]
 string xs = foldr (liftA2 (:)) (pure []) (map single xs)
 
-singles :: Eq t => [t] -> Parser t t
-singles = foldr (<|>) empty . map single
-
-strings :: Eq t => [[t]] -> Parser t [t]
-strings = foldr (<|>) empty . map string
+oneOf :: Eq t => (a -> Parser t b) -> [a] -> Parser t b
+oneOf f = foldr (<|>) empty . map f
 
 space :: Parser Char Char
 space = satisfy (`elem` " \t\n\r")
