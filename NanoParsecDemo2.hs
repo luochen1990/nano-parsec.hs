@@ -17,10 +17,10 @@ pXML = do
 
 pSubXML = Node <$> pXML <|> Text <$> pText
 
-pText = some $ '<' <$ string "&le" <|> satisfy (/= '<')
-pName = (:) <$> (satisfy isAlpha) <*> many (satisfy isAlphaNum)
-pAttrs = many $ some (satisfy (==' ')) *> ((,) <$> pName <* single '=' <*> pValue)
-pValue = some (satisfy isAlphaNum) <|> single '"' *> many (satisfy (/= '"')) <* single '"'
+pText = some $ '<' <$ string "&le" <|> sat (/= '<')
+pName = (:) <$> (sat isAlpha) <*> many (sat isAlphaNum)
+pAttrs = many $ some (sat (==' ')) *> ((,) <$> pName <* single '=' <*> pValue)
+pValue = some (sat isAlphaNum) <|> single '"' *> many (sat (/= '"')) <* single '"'
 
 parse = runParser pXML
 

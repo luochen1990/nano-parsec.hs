@@ -10,9 +10,9 @@ type Token = (String, String)
 
 tokenize :: String -> Either String [Token]
 tokenize = runParser (some tok) where
-  tok = (,) "Atom" <$> ((:) <$> satisfy isUpper <*> many (satisfy isLower))
-    <|> (,) "Numb" <$> some (satisfy isDigit)
-    <|> (,) "Brac" <$> pure <$> (satisfy (`elem` "(){}[]"))
+  tok = (,) "Atom" <$> ((:) <$> sat isUpper <*> many (sat isLower))
+    <|> (,) "Numb" <$> some (sat isDigit)
+    <|> (,) "Brac" <$> pure <$> (sat (`elem` "(){}[]"))
 
 pCount :: Parser Token (M.Map String Int)
 pCount = M.unionsWith (+) <$> some pTaged

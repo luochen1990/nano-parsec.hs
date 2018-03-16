@@ -28,11 +28,11 @@ anySingle = Parser (\s -> case s of [] -> []; (c:cs) -> [(c, cs)])
 eof :: Parser t ()
 eof = Parser (\s -> case s of [] -> [((), [])]; _ -> [])
 
-satisfy :: (t -> Bool) -> Parser t t
-satisfy p = Parser (\s -> case s of [] -> []; (c:cs) -> [(c, cs) | p c])
+sat :: (t -> Bool) -> Parser t t -- satisfy
+sat p = Parser (\s -> case s of [] -> []; (c:cs) -> [(c, cs) | p c])
 
 single :: Eq t => t -> Parser t t
-single x = satisfy (==x)
+single x = sat (==x)
 
 string :: Eq t => [t] -> Parser t [t]
 string xs = foldr (liftA2 (:)) (pure []) (map single xs)
@@ -41,7 +41,7 @@ oneOf :: Eq t => (a -> Parser t b) -> [a] -> Parser t b
 oneOf f = foldr (<|>) empty . map f
 
 space :: Parser Char Char
-space = satisfy (`elem` " \t\n\r")
+space = sat (`elem` " \t\n\r")
 
 spaces :: Parser Char String
 spaces = many space
