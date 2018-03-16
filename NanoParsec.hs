@@ -3,14 +3,27 @@ import Control.Applicative
 
 ------------------------ my nano parser combinator ------------------------
 
-newtype Parser tok res = Parser { prob :: [tok] -> [(res, [tok])] }
+newtype Parser tok res = Parser { _p :: [tok] -> [(res, [tok])] }
 
 runParser :: (Show t, Show a) => Parser t a -> [t] -> Either String a
-runParser m s = case prob m s of
-  [(res, [])] -> Right res
-  [c@(_, _)] -> Left ("not finised: " ++ show c)
-  [] -> Left ("impossible to parse: " ++ show s)
-  cs -> Left ("ambiguous: " ++ show cs)
+runParser m s = case _p m s of [(r,[])] -> Right r; cs -> Left ("parse fail: " ++ show cs)
+
+instance Alternative (Parser t) where
+  empty = Parser (const [])
+  p <|> p' = Parser (\s -> case _p p s of [] -> _p p' s; r -> r)
+
+instance Functor (Parser t) where
+  fmap f p = Parser (\s -> [(f a, b) | (a, b) <- _p p s])
+
+instance Applicative (Parser t) where
+  pure x = Parser (\s -> [(x, s)])
+  pf <*> px = Parser (\s -> [(f x, s2) | (f, s1) <- _p pf s, (x, s2) <- _p px s1])
+
+instance Monad (Parser t) where -- not required
+  p >>= f = Parser (\s -> concatMap (\(a, s') -> _p (f a) s') (_p p s))
+
+eof :: Parser t ()
+eof = Parser (\s -> case s of [] -> [((), [])]; _ -> [])
 
 item :: Parser t t
 item = Parser (\s -> case s of [] -> []; (c:cs) -> [(c, cs)])
@@ -24,14 +37,11 @@ single x = satisfy (==x)
 string :: Eq t => [t] -> Parser t [t]
 string xs = foldr (liftA2 (:)) (pure []) (map single xs)
 
-token :: Eq a => a -> Parser (a, b) b
-token tag = Parser (\s -> case s of [] -> []; ((t,r):s') -> [(r, s') | t == tag])
+singles :: Eq t => [t] -> Parser t t
+singles = foldr (<|>) empty . map single
 
-sepBy :: Parser t a -> Parser t b -> Parser t [a]
-sepBy p s = sepBy1 p s <|> pure []
-
-sepBy1 :: Parser t a -> Parser t b -> Parser t [a]
-sepBy1 p s = liftA2 (:) p (many (s *> p))
+strings :: Eq t => [[t]] -> Parser t [t]
+strings = foldr (<|>) empty . map string
 
 space :: Parser Char Char
 space = satisfy (`elem` " \t\n\r")
@@ -39,37 +49,18 @@ space = satisfy (`elem` " \t\n\r")
 spaces :: Parser Char String
 spaces = many space
 
-singles :: Eq t => [t] -> Parser t t
-singles = foldr (<|>) empty . map single
+token :: Eq a => a -> Parser (a, b) b
+token t = Parser (\s -> case s of [] -> []; ((x, y):s') -> [(y, s') | x == t])
 
-strings :: Eq t => [[t]] -> Parser t [t]
-strings = foldr (<|>) empty . map string
+sepBy1 :: Parser t a -> Parser t b -> Parser t [a]
+sepBy1 p op = liftA2 (:) p (many (op *> p))
 
-eof :: Parser t ()
-eof = Parser (\s -> case s of [] -> [((), [])]; _ -> [])
+sepBy :: Parser t a -> Parser t b -> Parser t [a]
+sepBy p op = liftA2 (:) p (many (op *> p)) <|> pure []
 
 assocl1 :: Parser t a -> Parser t (a -> a -> a) -> Parser t a
 assocl1 p op = p <**> (foldr (.) id <$> many (flip <$> op <*> p))
 
 assocl :: Parser t b -> Parser t (b -> a -> b) -> Parser t a -> Parser t b
 assocl p0 op p = p0 <**> (foldr (.) id <$> many (flip <$> op <*> p))
-
-instance Alternative (Parser t) where
-  empty = Parser (\cs -> [])
-  (<|>) p q = Parser $ \s -> case prob p s of [] -> prob q s; r -> r
-
-instance Functor (Parser t) where
-  fmap f (Parser cs) = Parser (\s -> [(f a, b) | (a, b) <- cs s])
-
-instance Applicative (Parser t) where
-  pure x = Parser (\s -> [(x, s)])
-  p <*> q = Parser (\s -> [(f a, s2) | (f, s1) <- prob p s, (a, s2) <- prob q s1])
-
-instance Monad (Parser t) where --NOTE: not necessary most of the time
-  return = pure
-  (>>=) p f = Parser $ \s -> concatMap (\(a, s') -> prob (f a) s') $ prob p s
-
---instance MonadPlus (Parser t) where
---  mzero = Parser (\cs -> [])
---  mplus p q = Parser (\s -> prob p s ++ prob q s)
 
