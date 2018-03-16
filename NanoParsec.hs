@@ -33,6 +33,27 @@ sepBy p s = sepBy1 p s <|> pure []
 sepBy1 :: Parser t a -> Parser t b -> Parser t [a]
 sepBy1 p s = liftA2 (:) p (many (s *> p))
 
+space :: Parser Char Char
+space = satisfy (`elem` " \t\n\r")
+
+spaces :: Parser Char String
+spaces = many space
+
+singles :: Eq t => [t] -> Parser t t
+singles = foldr (<|>) empty . map single
+
+strings :: Eq t => [[t]] -> Parser t [t]
+strings = foldr (<|>) empty . map string
+
+eof :: Parser t ()
+eof = Parser (\s -> case s of [] -> [((), [])]; _ -> [])
+
+assocl1 :: Parser t a -> Parser t (a -> a -> a) -> Parser t a
+assocl1 p op = p <**> (foldr (.) id <$> many (flip <$> op <*> p))
+
+assocl :: Parser t b -> Parser t (b -> a -> b) -> Parser t a -> Parser t b
+assocl p0 op p = p0 <**> (foldr (.) id <$> many (flip <$> op <*> p))
+
 instance Alternative (Parser t) where
   empty = Parser (\cs -> [])
   (<|>) p q = Parser $ \s -> case prob p s of [] -> prob q s; r -> r
