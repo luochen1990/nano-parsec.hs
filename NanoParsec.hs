@@ -28,7 +28,7 @@ anySingle = Parser (\s -> case s of [] -> []; (c:cs) -> [(c, cs)])
 eof :: Parser t ()
 eof = Parser (\s -> case s of [] -> [((), [])]; _ -> [])
 
-sat :: (t -> Bool) -> Parser t t -- satisfy
+sat :: (t -> Bool) -> Parser t t -- `satisfy` in parsec
 sat p = Parser (\s -> case s of [] -> []; (c:cs) -> [(c, cs) | p c])
 
 single :: Eq t => t -> Parser t t
@@ -55,9 +55,15 @@ sepBy1 p op = liftA2 (:) p (many (op *> p))
 sepBy :: Parser t a -> Parser t b -> Parser t [a]
 sepBy p op = liftA2 (:) p (many (op *> p)) <|> pure []
 
-assocl1 :: Parser t a -> Parser t (a -> a -> a) -> Parser t a
+assocl1 :: Parser t a -> Parser t (a -> a -> a) -> Parser t a -- `chainl1` in parsec
 assocl1 p op = p <**> (foldr (.) id <$> many (flip <$> op <*> p))
 
 assocl :: Parser t b -> Parser t (b -> a -> b) -> Parser t a -> Parser t b
 assocl p0 op p = p0 <**> (foldr (.) id <$> many (flip <$> op <*> p))
+
+assocr1 :: Parser t a -> Parser t (a -> a -> a) -> Parser t a -- `chainr1` in parsec
+assocr1 p op = (foldr (.) id <$> many (p <**> op)) <*> p
+
+assocr :: Parser t a -> Parser t (a -> b -> b) -> Parser t b -> Parser t b
+assocr p op p0 = (foldr (.) id <$> many (p <**> op)) <*> p0
 
