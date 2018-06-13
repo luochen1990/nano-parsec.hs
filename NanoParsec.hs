@@ -56,10 +56,10 @@ sepBy :: Parser t a -> Parser t b -> Parser t [a]
 sepBy p op = liftA2 (:) p (many (op *> p)) <|> pure []
 
 assocl1 :: Parser t a -> Parser t (a -> a -> a) -> Parser t a -- `chainl1` in parsec
-assocl1 p op = p <**> (foldr (.) id <$> many (flip <$> op <*> p))
+assocl1 p op = p <**> (foldr (flip (.)) id <$> many (flip <$> op <*> p))
 
 assocl :: Parser t b -> Parser t (b -> a -> b) -> Parser t a -> Parser t b
-assocl p0 op p = p0 <**> (foldr (.) id <$> many (flip <$> op <*> p))
+assocl p0 op p = p0 <**> (foldr (flip (.)) id <$> many (flip <$> op <*> p))
 
 assocr1 :: Parser t a -> Parser t (a -> a -> a) -> Parser t a -- `chainr1` in parsec
 assocr1 p op = (foldr (.) id <$> many (p <**> op)) <*> p
