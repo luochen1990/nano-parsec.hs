@@ -1,4 +1,4 @@
-module NanoParsecDemo where
+module BooleanAlgebraDemo where
 import Control.Applicative
 import NanoParsec
 
@@ -20,9 +20,9 @@ parse = runParser pExpr
 
 i ===> e = putStrLn (let o = parse i in if o /= e then "Fail: " ++ i ++ " ===> " ++ (show o) ++ "\n\tExpect: " ++ show e else "Ok.")
 test = do
-  "a" ===> Left "impossible to parse: \"a\""
+  "a" ===> Left "parse failed! rest paths: []"
   "t" ===> Right T
-  "tt" ===> Left "not finised: (T,\"t\")"
+  "tt" ===> Left "parse failed! rest paths: [(T,\"t\")]"
   "t&f" ===> Right (And T F)
   "!t|f" ===> Right (Or (Not T) F)
   "t&f|f&t|t&f" ===> Right (Or (And T F) (Or (And F T) (And T F)))

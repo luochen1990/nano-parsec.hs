@@ -1,4 +1,4 @@
-module SimpleXMLParser where
+module XmlParserDemo where
 import Control.Applicative
 import Data.Char
 import NanoParsec
@@ -26,9 +26,9 @@ parse = runParser pXML
 
 i ===> e = putStrLn (let o = parse i in if o /= e then "Fail: " ++ i ++ " ===> " ++ (show o) ++ "\n\tExpect: " ++ show e else "Ok.")
 test = do
-  "a" ===> Left "impossible to parse: \"a\""
+  "a" ===> Left "parse failed! rest paths: []"
   "<a></a>" ===> Right (MkXML "a" [] [])
-  "<a></b>" ===> Left "impossible to parse: \"<a></b>\""
+  "<a></b>" ===> Left "parse failed! rest paths: []"
   "<a>hello, world</a>" ===> Right (MkXML "a" [] [Text "hello, world"])
   "<a>hello, &leworld></a>" ===> Right (MkXML "a" [] [Text "hello, <world>"])
   "<a height=1>hello, world</a>" ===> Right (MkXML "a" [("height", "1")] [Text "hello, world"])

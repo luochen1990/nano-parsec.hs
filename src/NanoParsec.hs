@@ -6,7 +6,7 @@ import Control.Applicative
 newtype Parser tok res = Parser { _p :: [tok] -> [(res, [tok])] }
 
 runParser :: (Show t, Show a) => Parser t a -> [t] -> Either String a
-runParser m s = case _p m s of [(r,[])] -> Right r; cs -> Left ("parse fail: " ++ show cs)
+runParser m s = case _p m s of [(r,[])] -> Right r; cs -> Left ("parse failed! rest paths: " ++ show cs)
 
 instance Alternative (Parser t) where
   empty = Parser (const [])

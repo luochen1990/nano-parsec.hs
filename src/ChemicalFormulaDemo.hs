@@ -1,4 +1,4 @@
-module MoleculeToAtoms where
+module ChemicalFormulaDemo where
 
 import Data.List (sort)
 import NanoParsec
@@ -34,8 +34,8 @@ test = do
   "H2O" ===> Right [("H",2),("O",1)] --"water"
   "Mg(OH)2" ===> Right [("Mg",1),("O",2),("H",2)] --"magnesium hydroxide"
   "K4[ON(SO3)2]2" ===> Right [("K",4),("O",14),("N",2),("S",4)] --"Fremy's salt"
-  "pie" ===> Left "impossible to parse: \"pie\"" --"Not a valid molecule"
-  "Mg(OH" ===> Left "not finised: (fromList [(\"Mg\",1)],[(\"Brac\",\"(\"),(\"Atom\",\"O\"),(\"Atom\",\"H\")])" --"Mismatched parenthesis"
-  "Mg(OH}2" ===> Left "not finised: (fromList [(\"Mg\",1)],[(\"Brac\",\"(\"),(\"Atom\",\"O\"),(\"Atom\",\"H\"),(\"Brac\",\"}\"),(\"Numb\",\"2\")])" --"Mismatched parenthesis"
+  "pie" ===> Left "parse failed! rest paths: []" --"Not a valid molecule"
+  "Mg(OH" ===> Left "parse failed! rest paths: [(fromList [(\"Mg\",1)],[(\"Brac\",\"(\"),(\"Atom\",\"O\"),(\"Atom\",\"H\")])]" --"Mismatched parenthesis"
+  "Mg(OH}2" ===> Left "parse failed! rest paths: [(fromList [(\"Mg\",1)],[(\"Brac\",\"(\"),(\"Atom\",\"O\"),(\"Atom\",\"H\"),(\"Brac\",\"}\"),(\"Numb\",\"2\")])]" --"Mismatched parenthesis"
 
 i ===> e = putStrLn (let o = sort <$> parse i in if o /= fmap sort e then "Fail: " ++ i ++ " ===> " ++ (show o) ++ "\n\tExpect: " ++ show e else "Ok.")

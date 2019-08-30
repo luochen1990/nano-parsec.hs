@@ -1,4 +1,4 @@
-module LambdaCalculus where
+module LambdaCalculusDemo where
 
 import Control.Applicative
 import Data.Char
